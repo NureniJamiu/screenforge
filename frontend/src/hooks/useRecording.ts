@@ -91,7 +91,10 @@ export function useRecording(options: UseRecordingOptions = {}) {
           liveSessionRef.current = sessionId;
           chunkCounterRef.current = 0;
         } catch (error) {
-          console.warn('Failed to start live session, falling back to regular upload');
+          console.warn(
+              "Failed to start live session, falling back to regular upload:",
+              error
+          );
         }
       }
 

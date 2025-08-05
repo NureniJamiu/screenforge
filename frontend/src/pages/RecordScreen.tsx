@@ -21,9 +21,9 @@ import type { RecordingMode } from "../types/recording";
 export function RecordScreen() {
     const navigate = useNavigate();
     const { getToken } = useAuth(); // Get Clerk token for uploads
-    const [recordingMode, setRecordingMode] = useState<RecordingMode>("tab");
-    const [audioEnabled, setAudioEnabled] = useState(true);
-    const [micEnabled, setMicEnabled] = useState(false);
+    const [recordingMode] = useState<RecordingMode>("tab");
+    const [audioEnabled] = useState(true);
+    const [micEnabled] = useState(false);
     const [quality, setQuality] = useState<"standard" | "high" | "ultra">(
         "standard"
     );

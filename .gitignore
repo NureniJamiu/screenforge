@@ -100,8 +100,10 @@ Desktop.ini
 *.sqlite3
 
 # Uploads directory (for user uploaded files)
-uploads/
-*/uploads/
+uploads/*
+!uploads/.gitkeep
+*/uploads/*
+!*/uploads/.gitkeep
 
 # Prisma
 prisma/dev.db
@@ -114,18 +116,14 @@ playwright-report/
 
 # Docker
 .dockerignore
-Dockerfile
-docker-compose.yml
-docker-compose.*.yml
 
 # Deployment
 .vercel
 .netlify
 
-# Local development
+# Local development and production env files (keep .env.production as template)
 .env.development
 .env.staging
-.env.production
 
 # MacOS
 .DS_Store

@@ -3,17 +3,16 @@ import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import {
-  Video,
-  Monitor,
-  Edit,
-  Share2,
-  Shield,
-  Download,
-  Zap,
-  Users,
-  CheckCircle,
-  ArrowRight
-} from 'lucide-react';
+    Video,
+    Monitor,
+    Edit,
+    Share2,
+    Shield,
+    Download,
+    Zap,
+    CheckCircle,
+    ArrowRight,
+} from "lucide-react";
 
 export function FeaturesPage() {
   return (

@@ -73,10 +73,10 @@ export class VideoUploadService {
         this.currentUploadController = null; // Clear controller on completion
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            const response = JSON.parse(xhr.responseText);
-            resolve(response);
-          } catch (error) {
-            reject(new Error('Invalid response format'));
+              const response = JSON.parse(xhr.responseText);
+              resolve(response);
+          } catch (parseError) {
+              reject(new Error("Invalid response format"));
           }
         } else {
           try {
