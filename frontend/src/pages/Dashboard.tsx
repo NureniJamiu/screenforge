@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from "@clerk/clerk-react";
 import {
     Plus,
     Video,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { VideoService } from "../services/videoService";
+import { AuthenticatedVideoService } from "../services/authenticatedVideoService";
 
 interface VideoRecording {
     id: string;
@@ -38,6 +38,7 @@ interface DashboardStats {
 
 export function Dashboard() {
     const { user } = useUser();
+    const { getToken, isSignedIn } = useAuth();
     const [videos, setVideos] = useState<VideoRecording[]>([]);
     const [stats, setStats] = useState<DashboardStats>({
         totalVideos: 0,
@@ -110,16 +111,28 @@ export function Dashboard() {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!isSignedIn) return;
+
             setLoading(true);
             try {
-                const data = await VideoService.getAllVideos();
-                const mapped = data.map((v) => ({
+                const token = await getToken();
+                if (!token) {
+                    console.error("No authentication token available");
+                    return;
+                }
+
+                const data = await AuthenticatedVideoService.getAllVideos(
+                    token
+                );
+                const mapped = data.map((v: any) => ({
                     id: v.id,
                     title: v.title,
                     duration: formatDuration(v.duration),
                     createdAt: v.createdAt,
                     thumbnailUrl:
-                        VideoService.getThumbnailUrl(v.thumbnailUrl) || "",
+                        AuthenticatedVideoService.getThumbnailUrl(
+                            v.thumbnailUrl
+                        ) || "",
                     shareToken: v.shareToken || "",
                     downloadEnabled: v.isDownloadable ?? false,
                     views: v.viewCount ?? 0,
@@ -128,20 +141,21 @@ export function Dashboard() {
                 // compute stats
                 const totalVideos = mapped.length;
                 const totalViews = mapped.reduce(
-                    (sum, vid) => sum + vid.views,
+                    (sum: number, vid: any) => sum + vid.views,
                     0
                 );
                 const totalSeconds = data.reduce(
-                    (sum, vid) => sum + (vid.duration || 0),
+                    (sum: number, vid: any) => sum + (vid.duration || 0),
                     0
                 );
                 const totalDuration = formatDuration(totalSeconds);
                 const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
                 const thisWeekViews = mapped
                     .filter(
-                        (vid) => new Date(vid.createdAt).getTime() >= oneWeekAgo
+                        (vid: any) =>
+                            new Date(vid.createdAt).getTime() >= oneWeekAgo
                     )
-                    .reduce((sum, vid) => sum + vid.views, 0);
+                    .reduce((sum: number, vid: any) => sum + vid.views, 0);
                 setStats({
                     totalVideos,
                     totalViews,
@@ -155,7 +169,7 @@ export function Dashboard() {
             }
         };
         fetchData();
-    }, []);
+    }, [isSignedIn, getToken]);
     // Open confirmation dialog for deleting a video
     const openDeleteDialog = (videoId: string) => {
         setDeleteId(videoId);
@@ -164,7 +178,14 @@ export function Dashboard() {
     const handleConfirmDelete = async () => {
         if (deleteId) {
             try {
-                await VideoService.deleteVideo(deleteId);
+                const token = await getToken();
+                if (!token) {
+                    console.error("No authentication token available");
+                    alert("Authentication error. Please try again.");
+                    return;
+                }
+
+                await AuthenticatedVideoService.deleteVideo(deleteId, token);
                 setVideos(videos.filter((v) => v.id !== deleteId));
             } catch (err) {
                 console.error("Error deleting video:", err);
@@ -434,7 +455,9 @@ export function Dashboard() {
                                             </button>
                                             <button
                                                 className="flex items-center justify-center text-red-600 px-3 py-2 rounded-md hover:bg-red-50 transition-colors duration-150"
-                                                onClick={() => openDeleteDialog(video.id)}
+                                                onClick={() =>
+                                                    openDeleteDialog(video.id)
+                                                }
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import {
     Video,
     Filter,
@@ -14,11 +15,12 @@ import {
     ExternalLink,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { VideoService } from "../services/videoService";
+import { AuthenticatedVideoService } from "../services/authenticatedVideoService";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import type { ProcessedVideo } from "../types/recording";
 
 export function Videos() {
+    const { getToken, isSignedIn } = useAuth();
     const [videos, setVideos] = useState<ProcessedVideo[]>([]);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -79,9 +81,22 @@ export function Videos() {
 
     useEffect(() => {
         const fetchVideos = async () => {
+            if (!isSignedIn) return;
+
             try {
                 setLoading(true);
-                const videoData = await VideoService.getAllVideos();
+                const token = await getToken();
+                if (!token) {
+                    console.error("No authentication token available");
+                    setError(
+                        "Authentication error. Please try signing in again."
+                    );
+                    return;
+                }
+
+                const videoData = await AuthenticatedVideoService.getAllVideos(
+                    token
+                );
                 setVideos(videoData);
                 setError(null);
             } catch (err) {
@@ -95,7 +110,7 @@ export function Videos() {
         };
 
         fetchVideos();
-    }, []);
+    }, [isSignedIn, getToken]);
 
     const filteredVideos = videos.filter((video) => {
         const matchesSearch = video.title
@@ -144,7 +159,14 @@ export function Videos() {
 
     const handleDelete = async (videoId: string) => {
         try {
-            await VideoService.deleteVideo(videoId);
+            const token = await getToken();
+            if (!token) {
+                console.error("No authentication token available");
+                alert("Authentication error. Please try again.");
+                return;
+            }
+
+            await AuthenticatedVideoService.deleteVideo(videoId, token);
             setVideos(videos.filter((v) => v.id !== videoId));
         } catch (err) {
             console.error("Error deleting video:", err);
@@ -276,7 +298,7 @@ export function Videos() {
                                 <div className="aspect-video bg-gray-100 relative group">
                                     {video.thumbnailUrl ? (
                                         <img
-                                            src={VideoService.getThumbnailUrl(
+                                            src={AuthenticatedVideoService.getThumbnailUrl(
                                                 video.thumbnailUrl
                                             )}
                                             alt={video.title}
@@ -289,13 +311,13 @@ export function Videos() {
                                             muted
                                         >
                                             <source
-                                                src={VideoService.getVideoUrl(
+                                                src={AuthenticatedVideoService.getVideoUrl(
                                                     video.videoUrl
                                                 )}
                                                 type="video/webm"
                                             />
                                             <source
-                                                src={VideoService.getVideoUrl(
+                                                src={AuthenticatedVideoService.getVideoUrl(
                                                     video.videoUrl
                                                 )}
                                                 type="video/mp4"
@@ -359,7 +381,9 @@ export function Videos() {
                                                 <Share2 className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={() => openDeleteDialog(video.id)}
+                                                onClick={() =>
+                                                    openDeleteDialog(video.id)
+                                                }
                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                 title="Delete"
                                             >
@@ -367,7 +391,7 @@ export function Videos() {
                                             </button>
                                         </div>
                                         <Link
-                                            to={VideoService.getVideoUrl(
+                                            to={AuthenticatedVideoService.getVideoUrl(
                                                 video.videoUrl
                                             )}
                                             target="_blank"

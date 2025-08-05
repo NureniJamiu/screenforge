@@ -14,7 +14,6 @@ import {
     X,
     ExternalLink,
 } from "lucide-react";
-import { VideoService } from "../services/videoService";
 import { AuthenticatedVideoService } from "../services/authenticatedVideoService";
 import type { ProcessedVideo } from "../types/recording";
 
@@ -86,7 +85,9 @@ export function VideoEditor() {
         fetchVideo();
     }, [videoId, isSignedIn, getToken]);
 
-    const videoSrc = video ? VideoService.getVideoUrl(video.videoUrl) : null;
+    const videoSrc = video
+        ? AuthenticatedVideoService.getVideoUrl(video.videoUrl)
+        : null;
 
     useEffect(() => {
         if (videoRef.current && videoSrc) {
