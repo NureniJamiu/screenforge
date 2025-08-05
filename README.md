@@ -107,6 +107,23 @@ npm run start    # Start production server
 3. Update documentation as needed
 4. Ensure both frontend and backend builds pass
 
+## Deployment
+
+### Vercel Deployment
+
+This project is configured for deployment on Vercel. See `DEPLOYMENT.md` for detailed instructions.
+
+**Quick deployment validation:**
+```bash
+./validate-deployment.sh
+```
+
+**Deployment options:**
+1. **Separate deployments** (recommended): Deploy frontend and backend as separate Vercel projects
+2. **Monorepo deployment**: Deploy from root with frontend-only configuration
+
+See `DEPLOYMENT.md` for complete deployment instructions and environment variable setup.
+
 ## License
 
 MIT
