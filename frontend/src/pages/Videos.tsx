@@ -15,10 +15,13 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { VideoService } from "../services/videoService";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import type { ProcessedVideo } from "../types/recording";
 
 export function Videos() {
     const [videos, setVideos] = useState<ProcessedVideo[]>([]);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -140,14 +143,6 @@ export function Videos() {
     };
 
     const handleDelete = async (videoId: string) => {
-        if (
-            !confirm(
-                "Are you sure you want to delete this video? This action cannot be undone."
-            )
-        ) {
-            return;
-        }
-
         try {
             await VideoService.deleteVideo(videoId);
             setVideos(videos.filter((v) => v.id !== videoId));
@@ -155,6 +150,19 @@ export function Videos() {
             console.error("Error deleting video:", err);
             alert("Failed to delete video. Please try again.");
         }
+    };
+    const openDeleteDialog = (videoId: string) => {
+        setDeleteId(videoId);
+        setConfirmOpen(true);
+    };
+    const handleConfirmDelete = async () => {
+        if (deleteId) await handleDelete(deleteId);
+        setConfirmOpen(false);
+        setDeleteId(null);
+    };
+    const handleCancelDelete = () => {
+        setConfirmOpen(false);
+        setDeleteId(null);
     };
 
     return (
@@ -266,24 +274,34 @@ export function Videos() {
                             >
                                 {/* Video Thumbnail/Preview */}
                                 <div className="aspect-video bg-gray-100 relative group">
-                                    <video
-                                        className="w-full h-full object-cover"
-                                        preload="metadata"
-                                        muted
-                                    >
-                                        <source
-                                            src={VideoService.getVideoUrl(
-                                                video.videoUrl
+                                    {video.thumbnailUrl ? (
+                                        <img
+                                            src={VideoService.getThumbnailUrl(
+                                                video.thumbnailUrl
                                             )}
-                                            type="video/webm"
+                                            alt={video.title}
+                                            className="w-full h-full object-cover"
                                         />
-                                        <source
-                                            src={VideoService.getVideoUrl(
-                                                video.videoUrl
-                                            )}
-                                            type="video/mp4"
-                                        />
-                                    </video>
+                                    ) : (
+                                        <video
+                                            className="w-full h-full object-cover"
+                                            preload="metadata"
+                                            muted
+                                        >
+                                            <source
+                                                src={VideoService.getVideoUrl(
+                                                    video.videoUrl
+                                                )}
+                                                type="video/webm"
+                                            />
+                                            <source
+                                                src={VideoService.getVideoUrl(
+                                                    video.videoUrl
+                                                )}
+                                                type="video/mp4"
+                                            />
+                                        </video>
+                                    )}
                                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
                                         <Link
                                             to={`/dashboard/edit/${video.id}`}
@@ -341,9 +359,7 @@ export function Videos() {
                                                 <Share2 className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={() =>
-                                                    handleDelete(video.id)
-                                                }
+                                                onClick={() => openDeleteDialog(video.id)}
                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                 title="Delete"
                                             >
@@ -447,6 +463,13 @@ export function Videos() {
                             </div>
                         </div>
                     )}
+                    {/* Confirm Delete Dialog */}
+                    <ConfirmDialog
+                        isOpen={confirmOpen}
+                        message="Are you sure you want to delete this video? This action cannot be undone."
+                        onConfirm={handleConfirmDelete}
+                        onCancel={handleCancelDelete}
+                    />
                 </div>
             )}
         </div>

@@ -15,6 +15,7 @@ import {
     ExternalLink,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { VideoService } from "../services/videoService";
 
 interface VideoRecording {
@@ -49,6 +50,9 @@ export function Dashboard() {
     const [selectedVideo, setSelectedVideo] = useState<VideoRecording | null>(
         null
     );
+    // Confirm delete dialog state
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     // Helper to format seconds (number) into mm:ss
     const formatDuration = (seconds: number | null): string => {
@@ -152,7 +156,28 @@ export function Dashboard() {
         };
         fetchData();
     }, []);
-
+    // Open confirmation dialog for deleting a video
+    const openDeleteDialog = (videoId: string) => {
+        setDeleteId(videoId);
+        setConfirmOpen(true);
+    };
+    const handleConfirmDelete = async () => {
+        if (deleteId) {
+            try {
+                await VideoService.deleteVideo(deleteId);
+                setVideos(videos.filter((v) => v.id !== deleteId));
+            } catch (err) {
+                console.error("Error deleting video:", err);
+                alert("Failed to delete video. Please try again.");
+            }
+        }
+        setConfirmOpen(false);
+        setDeleteId(null);
+    };
+    const handleCancelDelete = () => {
+        setConfirmOpen(false);
+        setDeleteId(null);
+    };
     const statCards = [
         {
             title: "Total Videos",
@@ -407,7 +432,10 @@ export function Dashboard() {
                                                 <Share2 className="h-4 w-4 mr-1" />
                                                 Share
                                             </button>
-                                            <button className="flex items-center justify-center text-red-600 px-3 py-2 rounded-md hover:bg-red-50 transition-colors duration-150">
+                                            <button
+                                                className="flex items-center justify-center text-red-600 px-3 py-2 rounded-md hover:bg-red-50 transition-colors duration-150"
+                                                onClick={() => openDeleteDialog(video.id)}
+                                            >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
@@ -418,6 +446,13 @@ export function Dashboard() {
                     </div>
                 )}
                 {/* Share Modal */}
+                {/* Confirm Delete Dialog */}
+                <ConfirmDialog
+                    isOpen={confirmOpen}
+                    message="Are you sure you want to delete this video? This action cannot be undone."
+                    onConfirm={handleConfirmDelete}
+                    onCancel={handleCancelDelete}
+                />
                 {showShareModal && (
                     <div className="fixed inset-0 backdrop-blur-sm backdrop-brightness-50 flex items-center justify-center z-50">
                         <div className="bg-white/95 backdrop-blur-md rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border border-white/20">
