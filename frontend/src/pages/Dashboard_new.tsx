@@ -80,38 +80,38 @@ export function Dashboard() {
   }, []);
 
   const statCards = [
-    {
-      title: 'Total Videos',
-      value: stats.totalVideos,
-      icon: Video,
-      description: 'All recordings',
-      trend: '+12%',
-      color: 'blue'
-    },
-    {
-      title: 'Total Views',
-      value: stats.totalViews.toLocaleString(),
-      icon: Eye,
-      description: 'Lifetime views',
-      trend: '+23%',
-      color: 'green'
-    },
-    {
-      title: 'Total Duration',
-      value: stats.totalDuration,
-      icon: Clock,
-      description: 'Recording time',
-      trend: '+8%',
-      color: 'purple'
-    },
-    {
-      title: 'This Week',
-      value: stats.thisWeekViews,
-      icon: TrendingUp,
-      description: 'Weekly views',
-      trend: '+34%',
-      color: 'orange'
-    }
+      {
+          title: "Total Videos",
+          value: stats.totalVideos,
+          icon: Video,
+          description: "Recordings",
+          trend: "+12%",
+          color: "blue",
+      },
+      {
+          title: "Total Views",
+          value: stats.totalViews.toLocaleString(),
+          icon: Eye,
+          description: "Views",
+          trend: "+23%",
+          color: "green",
+      },
+      {
+          title: "Total Duration",
+          value: stats.totalDuration,
+          icon: Clock,
+          description: "Time",
+          trend: "+8%",
+          color: "purple",
+      },
+      {
+          title: "This Week",
+          value: stats.thisWeekViews,
+          icon: TrendingUp,
+          description: "Views",
+          trend: "+34%",
+          color: "orange",
+      },
   ];
 
   const getColorClasses = (color: string) => {
