@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  videos Video[]
+
+  @@map("users")
+}
+
+model Video {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  filename        String
+  originalName    String
+  mimeType        String
+  size            Int
+  duration        Float?
+  resolution      String?
+  thumbnailUrl    String?
+  videoUrl        String
+  recordingType   RecordingType
+  isDownloadable  Boolean  @default(true)
+  isPublic        Boolean  @default(false)
+  shareToken      String?  @unique
+  viewCount       Int      @default(0)
+  downloadCount   Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  editingSessions EditingSession[]
+  shares          VideoShare[]
+
+  @@map("videos")
+}
+
+model EditingSession {
+  id        String   @id @default(cuid())
+  name      String
+  edits     Json     // Store editing operations as JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("editing_sessions")
+}
+
+model VideoShare {
+  id        String    @id @default(cuid())
+  shareType ShareType
+  platform  String?   // For social media shares
+  sharedAt  DateTime  @default(now())
+  expiresAt DateTime?
+
+  // Relations
+  videoId   String
+  video     Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("video_shares")
+}
+
+enum RecordingType {
+  TAB
+  WINDOW
+  DESKTOP
+}
+
+enum ShareType {
+  DOWNLOAD
+  LINK
+  SOCIAL
+}
