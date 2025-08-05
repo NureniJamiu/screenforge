@@ -14,6 +14,9 @@ import videoRoutes from './routes/videos';
 import userRoutes from './routes/users';
 import shareRoutes from './routes/shares';
 
+// Import utilities
+import { startCleanupJob } from './utils/videoProcessor';
+
 // Load environment variables
 dotenv.config();
 
@@ -95,4 +98,8 @@ process.on('SIGINT', async () => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
+
+  // Start background cleanup job
+  startCleanupJob();
+  console.log('🧹 Background cleanup job started');
 });

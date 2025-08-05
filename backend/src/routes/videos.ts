@@ -8,6 +8,16 @@ import fs from 'fs';
 
 const router = express.Router();
 
+// In-memory storage for upload sessions (in production, use Redis or database)
+interface UploadSession {
+  metadata: any;
+  totalChunks: number;
+  uploadedChunks: number[];
+  userId: string;
+}
+
+const uploadSessions: Map<string, UploadSession> = new Map();
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -29,10 +39,20 @@ const upload = multer({
     fileSize: 500 * 1024 * 1024, // 500MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Accept video files only
-    if (file.mimetype.startsWith('video/')) {
+    console.log('File upload attempt:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      fieldname: file.fieldname
+    });
+
+    // Accept video files and webm files specifically
+    if (file.mimetype.startsWith('video/') ||
+        file.mimetype === 'application/octet-stream' ||
+        file.originalname.endsWith('.webm') ||
+        file.originalname.endsWith('.mp4')) {
       cb(null, true);
     } else {
+      console.error('Rejected file with mimetype:', file.mimetype);
       cb(new Error('Only video files are allowed!'));
     }
   }
@@ -87,7 +107,7 @@ router.post('/upload', requireAuth(), upload.single('video'), async (req: Authen
     }
 
     const userId = req.userId!;
-    const { title, description, recordingType = 'DESKTOP', isDownloadable = true } = req.body;
+    const { title, description, recordingType = 'DESKTOP', duration, isDownloadable = true } = req.body;
 
     // Get or create user
     let user = await prisma.user.findUnique({
@@ -114,8 +134,9 @@ router.post('/upload', requireAuth(), upload.single('video'), async (req: Authen
         originalName: req.file.originalname,
         mimeType: req.file.mimetype,
         size: req.file.size,
+        duration: duration ? parseFloat(duration) : null,
         videoUrl: `/uploads/${req.file.filename}`,
-        recordingType,
+        recordingType: recordingType as any,
         isDownloadable: isDownloadable === 'true',
         userId: user.id,
         shareToken: uuidv4()
@@ -252,6 +273,233 @@ router.delete('/:id', requireAuth(), async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error('Error deleting video:', error);
     res.status(500).json({ error: 'Failed to delete video' });
+  }
+});
+
+// Generate share token for video
+router.post('/:id/share', requireAuth(), async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.userId!;
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const video = await prisma.video.findFirst({
+      where: {
+        id,
+        userId: user.id
+      }
+    });
+
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    // Generate new share token if one doesn't exist
+    let shareToken = video.shareToken;
+    if (!shareToken) {
+      shareToken = uuidv4();
+
+      const updatedVideo = await prisma.video.update({
+        where: { id },
+        data: { shareToken }
+      });
+
+      return res.json(updatedVideo);
+    }
+
+    // Return existing video if it already has a share token
+    res.json(video);
+  } catch (error) {
+    console.error('Error generating share token:', error);
+    res.status(500).json({ error: 'Failed to generate share token' });
+  }
+});
+
+// Chunked upload support
+const chunkStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const tempDir = path.join(__dirname, '../../uploads/temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    cb(null, tempDir);
+  },
+  filename: (req, file, cb) => {
+    const { uploadId, chunkIndex } = req.body;
+    cb(null, `${uploadId}_chunk_${chunkIndex}`);
+  }
+});
+
+const chunkUpload = multer({
+  storage: chunkStorage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB per chunk
+});
+
+// Initialize chunked upload
+router.post('/upload/init', requireAuth(), async (req: AuthenticatedRequest, res) => {
+  try {
+    const { uploadId, metadata, totalChunks } = req.body;
+
+    // Store upload session
+    uploadSessions.set(uploadId, {
+      metadata,
+      totalChunks,
+      uploadedChunks: [],
+      userId: req.userId!
+    });
+
+    res.json({ success: true, uploadId });
+  } catch (error) {
+    console.error('Error initializing chunked upload:', error);
+    res.status(500).json({ error: 'Failed to initialize upload' });
+  }
+});
+
+// Upload chunk
+router.post('/upload/chunk', requireAuth(), chunkUpload.single('chunk'), async (req: AuthenticatedRequest, res) => {
+  try {
+    const { uploadId, chunkIndex } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No chunk provided' });
+    }
+
+    // Track uploaded chunk
+    const session = uploadSessions.get(uploadId);
+
+    if (!session || session.userId !== req.userId) {
+      return res.status(404).json({ error: 'Upload session not found' });
+    }
+
+    session.uploadedChunks.push(parseInt(chunkIndex));
+
+    res.json({
+      success: true,
+      uploadedChunks: session.uploadedChunks.length,
+      totalChunks: session.totalChunks
+    });
+  } catch (error) {
+    console.error('Error uploading chunk:', error);
+    res.status(500).json({ error: 'Failed to upload chunk' });
+  }
+});
+
+// Finalize chunked upload
+router.post('/upload/finalize', requireAuth(), async (req: AuthenticatedRequest, res) => {
+  try {
+    const { uploadId } = req.body;
+    const userId = req.userId!;
+
+    const session = uploadSessions.get(uploadId);
+
+    if (!session || session.userId !== userId) {
+      return res.status(404).json({ error: 'Upload session not found' });
+    }
+
+    // Verify all chunks are uploaded
+    if (session.uploadedChunks.length !== session.totalChunks) {
+      return res.status(400).json({
+        error: 'Missing chunks',
+        uploaded: session.uploadedChunks.length,
+        total: session.totalChunks
+      });
+    }
+
+    // Combine chunks
+    const tempDir = path.join(__dirname, '../../uploads/temp');
+    const finalDir = path.join(__dirname, '../../uploads');
+    const finalFilename = `${uuidv4()}-${Date.now()}.webm`;
+    const finalPath = path.join(finalDir, finalFilename);
+
+    const writeStream = fs.createWriteStream(finalPath);
+
+    for (let i = 0; i < session.totalChunks; i++) {
+      const chunkPath = path.join(tempDir, `${uploadId}_chunk_${i}`);
+      if (fs.existsSync(chunkPath)) {
+        const chunkData = fs.readFileSync(chunkPath);
+        writeStream.write(chunkData);
+        fs.unlinkSync(chunkPath); // Clean up chunk
+      }
+    }
+
+    writeStream.end();
+
+    // Get file stats
+    const stats = fs.statSync(finalPath);
+
+    // Get or create user
+    let user = await prisma.user.findUnique({
+      where: { clerkId: userId }
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          email: req.userEmail || '',
+          firstName: req.userFirstName,
+          lastName: req.userLastName,
+        }
+      });
+    }
+
+    // Create video record
+    const video = await prisma.video.create({
+      data: {
+        title: session.metadata.title || `Recording ${new Date().toLocaleDateString()}`,
+        description: session.metadata.description,
+        filename: finalFilename,
+        originalName: `recording-${Date.now()}.webm`,
+        mimeType: 'video/webm',
+        size: stats.size,
+        duration: session.metadata.duration ? parseFloat(session.metadata.duration) : null,
+        videoUrl: `/uploads/${finalFilename}`,
+        recordingType: session.metadata.recordingType as any,
+        isDownloadable: session.metadata.isDownloadable !== false,
+        userId: user.id,
+        shareToken: uuidv4()
+      }
+    });
+
+    // Clean up session
+    uploadSessions.delete(uploadId);
+
+    res.json(video);
+  } catch (error) {
+    console.error('Error finalizing upload:', error);
+    res.status(500).json({ error: 'Failed to finalize upload' });
+  }
+});
+
+// Cleanup failed upload
+router.delete('/upload/cleanup', requireAuth(), async (req: AuthenticatedRequest, res) => {
+  try {
+    const { uploadId } = req.body;
+
+    // Clean up chunks
+    const tempDir = path.join(__dirname, '../../uploads/temp');
+    const files = fs.readdirSync(tempDir);
+
+    files.forEach(file => {
+      if (file.startsWith(`${uploadId}_chunk_`)) {
+        fs.unlinkSync(path.join(tempDir, file));
+      }
+    });
+
+    // Clean up session
+    uploadSessions.delete(uploadId);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error cleaning up upload:', error);
+    res.status(500).json({ error: 'Failed to cleanup upload' });
   }
 });
 
