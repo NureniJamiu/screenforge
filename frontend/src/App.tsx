@@ -10,8 +10,8 @@ import { Videos } from './pages/Videos';
 import { SettingsPage } from './pages/Settings';
 import { AuthLayout } from './components/AuthLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { updateMetaTags, pageSEOConfigs, defaultSEO } from "./utils/seo";
 
-// Get Clerk publishable key from environment
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 if (!PUBLISHABLE_KEY) {
@@ -22,14 +22,26 @@ function AppRoutes() {
   const location = useLocation();
 
   useEffect(() => {
-    // Apply dark mode to all routes except dashboard routes
-    const isDashboardRoute = location.pathname.startsWith('/dashboard');
+      // Apply dark mode to all routes except dashboard routes
+      const isDashboardRoute = location.pathname.startsWith("/dashboard");
 
-    if (isDashboardRoute) {
-      document.documentElement.classList.remove('dark');
-    } else {
-      document.documentElement.classList.add('dark');
-    }
+      if (isDashboardRoute) {
+          document.documentElement.classList.remove("dark");
+      } else {
+          document.documentElement.classList.add("dark");
+      }
+
+      // Update SEO meta tags based on current route
+      const seoConfig = pageSEOConfigs[location.pathname] || defaultSEO;
+      updateMetaTags(seoConfig);
+
+      // Update canonical URL for current page
+      if (seoConfig.canonicalUrl) {
+          updateMetaTags({
+              ...seoConfig,
+              canonicalUrl: `${window.location.origin}${location.pathname}`,
+          });
+      }
   }, [location.pathname]);
 
   // Determine background class based on route

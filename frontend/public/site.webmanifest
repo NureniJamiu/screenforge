@@ -1,0 +1,85 @@
+{
+  "name": "ScreenForge - Professional Screen Recording Tool",
+  "short_name": "ScreenForge",
+  "description": "Record your screen, edit videos with AI captions, and share with advanced controls. The most comprehensive screen recording tool for professionals and teams.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "multimedia", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "platform": "wide",
+      "label": "ScreenForge Dashboard on Desktop"
+    },
+    {
+      "src": "/screenshot-mobile.jpg",
+      "sizes": "750x1334",
+      "type": "image/jpeg",
+      "platform": "narrow",
+      "label": "ScreenForge Mobile Interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Recording",
+      "short_name": "Record",
+      "description": "Quickly start a new screen recording",
+      "url": "/dashboard/record",
+      "icons": [
+        {
+          "src": "/icons/record-shortcut.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "My Videos",
+      "short_name": "Videos",
+      "description": "View your recorded videos",
+      "url": "/dashboard/videos",
+      "icons": [
+        {
+          "src": "/icons/videos-shortcut.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

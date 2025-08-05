@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
 import {
-    Play,
     Download,
     Share2,
     Eye,
@@ -14,6 +13,7 @@ import {
     Video,
 } from "lucide-react";
 import { VideoService } from "../services/videoService";
+import { VideoSEO } from "../components/SEOHead";
 import type { ProcessedVideo } from "../types/recording";
 
 export function VideoView() {
@@ -134,6 +134,19 @@ export function VideoView() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {video && (
+                <VideoSEO
+                    title={video.title || "Screen Recording"}
+                    description={
+                        video.description ||
+                        `Watch this screen recording created with ScreenForge.`
+                    }
+                    videoUrl={window.location.href}
+                    thumbnailUrl={video.thumbnailUrl}
+                    duration={video.duration || undefined}
+                    uploadDate={video.createdAt}
+                />
+            )}
             {/* Header */}
             <header className="bg-white shadow-sm border-b border-gray-200">
                 <div className="max-w-6xl mx-auto px-4 py-4">

@@ -13,6 +13,7 @@ import {
     Sparkles,
     X,
 } from "lucide-react";
+import { HomeSEO } from "../components/SEOHead";
 
 export function Landing() {
   const [isVisible, setIsVisible] = useState(false);
@@ -120,6 +121,7 @@ export function Landing() {
 
   return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 overflow-hidden relative">
+          <HomeSEO />
           {/* Neon Background Grid System */}
           <div className="fixed inset-0 pointer-events-none z-0">
               {/* Horizontal flowing lines */}
