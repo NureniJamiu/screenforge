@@ -106,54 +106,64 @@ export class VideoProcessor {
 
   static async processVideo(videoId: string): Promise<void> {
     try {
-      const video = await prisma.video.findUnique({
-        where: { id: videoId }
-      });
-
-      if (!video) {
-        console.error('Video not found:', videoId);
-        return;
-      }
-
-      const videoPath = path.join(__dirname, '../../uploads', video.filename);
-
-      if (!fs.existsSync(videoPath)) {
-        console.error('Video file not found:', videoPath);
-        return;
-      }
-
-      // Extract metadata
-      const metadata = await this.extractMetadata(videoPath);
-
-      // Create thumbnails directory if it doesn't exist
-      const thumbnailDir = path.join(__dirname, '../../uploads/thumbnails');
-      if (!fs.existsSync(thumbnailDir)) {
-        fs.mkdirSync(thumbnailDir, { recursive: true });
-      }
-
-      // Generate thumbnail
-      const thumbnailUrl = await this.generateThumbnail(videoId, videoPath, thumbnailDir);
-
-      // Update video record with metadata and thumbnail
-      const updateData: any = {};
-
-      if (metadata) {
-        updateData.duration = metadata.duration;
-        updateData.resolution = metadata.resolution;
-      }
-
-      if (thumbnailUrl) {
-        updateData.thumbnailUrl = thumbnailUrl;
-      }
-
-      if (Object.keys(updateData).length > 0) {
-        await prisma.video.update({
-          where: { id: videoId },
-          data: updateData
+        const video = await prisma.video.findUnique({
+            where: { id: videoId },
         });
-      }
 
-      console.log(`Video processing completed for ${videoId}`);
+        if (!video) {
+            console.error("Video not found:", videoId);
+            return;
+        }
+
+        // Skip processing for Cloudinary videos (no local file)
+        if (video.storageProvider === "CLOUDINARY" || !video.filename) {
+            console.log("Skipping processing for Cloudinary video:", videoId);
+            return;
+        }
+
+        const videoPath = path.join(__dirname, "../../uploads", video.filename);
+
+        if (!fs.existsSync(videoPath)) {
+            console.error("Video file not found:", videoPath);
+            return;
+        }
+
+        // Extract metadata
+        const metadata = await this.extractMetadata(videoPath);
+
+        // Create thumbnails directory if it doesn't exist
+        const thumbnailDir = path.join(__dirname, "../../uploads/thumbnails");
+        if (!fs.existsSync(thumbnailDir)) {
+            fs.mkdirSync(thumbnailDir, { recursive: true });
+        }
+
+        // Generate thumbnail
+        const thumbnailUrl = await this.generateThumbnail(
+            videoId,
+            videoPath,
+            thumbnailDir
+        );
+
+        // Update video record with metadata and thumbnail
+        const updateData: any = {};
+
+        if (metadata) {
+            updateData.duration = metadata.duration;
+            updateData.resolution = metadata.resolution;
+        }
+
+        if (thumbnailUrl) {
+            updateData.thumbnailUrl = thumbnailUrl;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+            await prisma.video.update({
+                where: { id: videoId },
+                data: updateData,
+            });
+        }
+
+        console.log(`Video processing completed for ${videoId}`);
     } catch (error) {
       console.error('Error processing video:', error);
     }

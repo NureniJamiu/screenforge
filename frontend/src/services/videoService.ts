@@ -100,7 +100,12 @@ export class VideoService {
   }
 
   static getVideoUrl(videoUrl: string): string {
-    // Remove /api prefix if present and construct full URL
+    // If it's already a full URL (like Cloudinary), return as-is
+    if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
+      return videoUrl;
+    }
+
+    // For relative URLs, remove /api prefix if present and construct full URL
     const cleanUrl = videoUrl.startsWith('/api') ? videoUrl.substring(4) : videoUrl;
     const baseUrl = API_BASE.replace('/api', '');
     return `${baseUrl}${cleanUrl}`;
@@ -108,6 +113,13 @@ export class VideoService {
 
   static getThumbnailUrl(thumbnailUrl: string | undefined): string | undefined {
     if (!thumbnailUrl) return undefined;
+
+    // If it's already a full URL (like Cloudinary), return as-is
+    if (thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://')) {
+      return thumbnailUrl;
+    }
+
+    // For relative URLs, remove /api prefix if present and construct full URL
     const cleanUrl = thumbnailUrl.startsWith('/api') ? thumbnailUrl.substring(4) : thumbnailUrl;
     const baseUrl = API_BASE.replace('/api', '');
     return `${baseUrl}${cleanUrl}`;

@@ -29,7 +29,7 @@ model Video {
   id              String   @id @default(cuid())
   title           String
   description     String?
-  filename        String
+  filename        String?  // Made optional for Cloudinary
   originalName    String
   mimeType        String
   size            Int
@@ -37,6 +37,9 @@ model Video {
   resolution      String?
   thumbnailUrl    String?
   videoUrl        String
+  cloudinaryPublicId String?  // Cloudinary public ID
+  cloudinaryUrl      String?  // Cloudinary secure URL
+  storageProvider    StorageProvider @default(LOCAL)  // Track storage type
   recordingType   RecordingType
   isDownloadable  Boolean  @default(true)
   isPublic        Boolean  @default(false)
@@ -93,4 +96,9 @@ enum ShareType {
   DOWNLOAD
   LINK
   SOCIAL
+}
+
+enum StorageProvider {
+  LOCAL
+  CLOUDINARY
 }

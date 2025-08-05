@@ -14,23 +14,26 @@ export interface VideoUploadProgress {
 }
 
 export interface ProcessedVideo {
-  id: string;
-  title: string;
-  filename: string;
-  videoUrl: string;
-  duration: number | null;
-  size: number;
-  thumbnailUrl?: string;
-  createdAt: string;
-  isDownloadable?: boolean;
-  isPublic?: boolean;
-  description?: string;
-  mimeType?: string;
-  recordingType?: string;
-  shareToken?: string;
-  viewCount?: number;
-  user?: {
-    firstName?: string;
-    lastName?: string;
-  };
+    id: string;
+    title: string;
+    filename?: string; // Made optional since Cloudinary videos don't have local filenames
+    videoUrl: string;
+    duration: number | null;
+    size: number;
+    thumbnailUrl?: string;
+    cloudinaryPublicId?: string; // Cloudinary public ID
+    cloudinaryUrl?: string; // Cloudinary secure URL
+    storageProvider?: "LOCAL" | "CLOUDINARY"; // Storage provider type
+    createdAt: string;
+    isDownloadable?: boolean;
+    isPublic?: boolean;
+    description?: string;
+    mimeType?: string;
+    recordingType?: string;
+    shareToken?: string;
+    viewCount?: number;
+    user?: {
+        firstName?: string;
+        lastName?: string;
+    };
 }
