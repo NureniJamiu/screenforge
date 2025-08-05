@@ -14,11 +14,13 @@ import {
     Settings,
     X,
 } from "lucide-react";
+import { useAuth } from "@clerk/clerk-react"; // Add authentication hook for tokens
 import { useRecording } from "../hooks/useRecording";
 import type { RecordingMode } from "../types/recording";
 
 export function RecordScreen() {
     const navigate = useNavigate();
+    const { getToken } = useAuth(); // Get Clerk token for uploads
     const [recordingMode, setRecordingMode] = useState<RecordingMode>("tab");
     const [audioEnabled, setAudioEnabled] = useState(true);
     const [micEnabled, setMicEnabled] = useState(false);
@@ -34,6 +36,7 @@ export function RecordScreen() {
         onError: (error) => {
             console.error("Recording error:", error);
         },
+        getAuthToken: getToken, // Provide token for upload authentication
         enableLiveUpload: false, // Set to true for real-time upload
     });
 
