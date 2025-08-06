@@ -242,6 +242,7 @@ export class VideoUploadService {
   ): Promise<void> {
     const response = await fetch(`${API_BASE}/videos/upload/init`, {
       method: 'POST',
+      credentials: 'include', // Include credentials for CORS requests
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('clerk-db-jwt')}`
@@ -270,6 +271,7 @@ export class VideoUploadService {
 
     const response = await fetch(`${API_BASE}/videos/upload/chunk`, {
       method: 'POST',
+      credentials: 'include', // Include credentials for CORS requests
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('clerk-db-jwt')}`
       },
@@ -285,6 +287,7 @@ export class VideoUploadService {
   private async finalizeChunkedUpload(uploadId: string): Promise<ProcessedVideo> {
     const response = await fetch(`${API_BASE}/videos/upload/finalize`, {
       method: 'POST',
+      credentials: 'include', // Include credentials for CORS requests
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('clerk-db-jwt')}`
@@ -303,6 +306,7 @@ export class VideoUploadService {
     try {
       await fetch(`${API_BASE}/videos/upload/cleanup`, {
         method: 'DELETE',
+        credentials: 'include', // Include credentials for CORS requests
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('clerk-db-jwt')}`
@@ -327,6 +331,7 @@ export class VideoUploadService {
 
     const response = await fetch(`${API_BASE}/videos/upload/live-chunk`, {
       method: 'POST',
+      credentials: 'include', // Include credentials for CORS requests
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('clerk-db-jwt')}`
       },
@@ -341,6 +346,7 @@ export class VideoUploadService {
   async startLiveSession(metadata: any): Promise<string> {
     const response = await fetch(`${API_BASE}/videos/upload/live-start`, {
       method: 'POST',
+      credentials: 'include', // Include credentials for CORS requests
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('clerk-db-jwt')}`
@@ -359,6 +365,7 @@ export class VideoUploadService {
   async finalizeLiveSession(sessionId: string): Promise<ProcessedVideo> {
     const response = await fetch(`${API_BASE}/videos/upload/live-finalize`, {
       method: 'POST',
+      credentials: 'include', // Include credentials for CORS requests
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('clerk-db-jwt')}`

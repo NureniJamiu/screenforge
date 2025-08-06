@@ -39,34 +39,14 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Manual CORS headers (as backup/primary CORS solution)
-app.use((req, res, next) => {
-    // Set CORS headers manually
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    res.header(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, Accept, X-Requested-With"
-    );
-    res.header("Access-Control-Max-Age", "86400"); // 24 hours
+// Note: Manual CORS headers removed to avoid conflicts with cors middleware
 
-    // Handle preflight requests
-    if (req.method === "OPTIONS") {
-        res.status(200).end();
-        return;
-    }
-
-    next();
-});
-
-// CORS configuration (keeping as secondary layer)
+// CORS configuration
 const getAllowedOrigins = (): (string | RegExp)[] => {
     const origins: (string | RegExp)[] = [
-        "http://localhost:5173", // Development
-        "https://screenforge.vercel.app", // Main production domain
+        "http://localhost:5173", // Development frontend
+        "http://localhost:3000", // Alternative development frontend
+        "https://screenforge.vercel.app", // Main production frontend domain
         "https://screenforge-git-main-nurenijamiu.vercel.app", // Git branch deployment
     ];
 
@@ -75,7 +55,7 @@ const getAllowedOrigins = (): (string | RegExp)[] => {
         origins.push(process.env.FRONTEND_URL);
     }
 
-    // In production, allow Vercel preview deployments
+    // In production, allow Vercel preview deployments for frontend
     if (process.env.NODE_ENV === "production") {
         origins.push(/^https:\/\/screenforge.*\.vercel\.app$/); // Allow all Vercel deployments
     }
@@ -89,8 +69,16 @@ app.use(
         origin: getAllowedOrigins(),
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+        allowedHeaders: [
+            "Content-Type", 
+            "Authorization", 
+            "Accept", 
+            "X-Requested-With",
+            "Origin"
+        ],
         exposedHeaders: ["Content-Disposition"],
+        optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+        preflightContinue: false // Pass control to the next handler
     })
 );
 

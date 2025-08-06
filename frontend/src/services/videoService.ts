@@ -41,6 +41,7 @@ export class VideoService {
 
         const response = await fetch(`${API_BASE}${url}`, {
             ...options,
+            credentials: 'include', // Include credentials for CORS requests
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
@@ -141,7 +142,10 @@ export class VideoService {
     static async getSharedVideo(shareToken: string): Promise<ProcessedVideo> {
         try {
             const response = await fetch(
-                `${API_BASE.replace("/api", "")}/api/shares/video/${shareToken}`
+                `${API_BASE.replace("/api", "")}/api/shares/video/${shareToken}`,
+                {
+                    credentials: 'include' // Include credentials for CORS requests
+                }
             );
 
             if (!response.ok) {
