@@ -40,10 +40,34 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
+const getAllowedOrigins = (): (string | RegExp)[] => {
+    const origins: (string | RegExp)[] = [
+        "http://localhost:5173", // Development
+    ];
+
+    // Add environment-specific origin if provided
+    if (process.env.FRONTEND_URL) {
+        origins.push(process.env.FRONTEND_URL);
+    }
+
+    // In production, allow Vercel preview deployments and the main domain
+    if (process.env.NODE_ENV === "production") {
+        origins.push(/^https:\/\/.*\.vercel\.app$/); // Allow all Vercel preview deployments
+        origins.push("https://screenforge.vercel.app"); // Main production domain
+    }
+
+    return origins;
+};
+
+app.use(
+    cors({
+        origin: getAllowedOrigins(),
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+        exposedHeaders: ["Content-Disposition"],
+    })
+);
 
 // Compression
 app.use(compression());

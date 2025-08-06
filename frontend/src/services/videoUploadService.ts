@@ -1,6 +1,29 @@
 import type { ProcessedVideo, VideoUploadProgress } from '../types/recording';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Determine API base URL based on environment
+const getApiBase = (): string => {
+    // First check environment variable
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+
+    // For development, use localhost
+    if (import.meta.env.DEV) {
+        return 'http://localhost:3001/api';
+    }
+
+    // For production, construct URL based on current domain
+    // This assumes the backend is deployed at the same domain with different subdomain
+    const currentHost = window.location.hostname;
+    if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+        return 'http://localhost:3001/api';
+    }
+
+    // Fallback to relative API path - this requires the backend to be served from the same domain
+    return '/api';
+};
+
+const API_BASE = getApiBase();
 
 export class VideoUploadService {
   private currentUploadController: AbortController | null = null;
