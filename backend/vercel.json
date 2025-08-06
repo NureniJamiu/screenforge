@@ -1,14 +1,18 @@
 {
     "version": 2,
-    "functions": {
-        "api/index.ts": {
-            "includeFiles": "prisma/**"
-        }
-    },
-    "rewrites": [
+    "builds": [
         {
-            "source": "/(.*)",
-            "destination": "/api/index"
+            "src": "api/index.ts",
+            "use": "@vercel/node"
         }
-    ]
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/api/index"
+        }
+    ],
+    "env": {
+        "PRISMA_CLI_BINARY_TARGETS": "native,rhel-openssl-1.0.x"
+    }
 }
