@@ -234,16 +234,16 @@ export function Landing() {
                               ScreenForge
                           </span>
                       </div>
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2 sm:space-x-4">
                           <button
                               onClick={() => setShowSignIn(true)}
-                              className="text-gray-200 hover:text-gray-100 font-medium transition-all duration-200 hover:scale-105"
+                              className="text-gray-200 hover:text-gray-100 font-medium transition-all duration-200 hover:scale-105 text-sm sm:text-base px-2 sm:px-3 py-1"
                           >
                               Sign In
                           </button>
                           <button
                               onClick={() => setShowSignUp(true)}
-                              className="bg-gradient-to-r from-primary-500 to-purple-500 text-white px-6 py-2 rounded-full hover:shadow-lg hover:shadow-primary-500/25 font-medium transition-all duration-200 hover:scale-105"
+                              className="bg-gradient-to-r from-primary-500 to-purple-500 text-white px-3 sm:px-6 py-1.5 sm:py-2 rounded-full hover:shadow-lg hover:shadow-primary-500/25 font-medium transition-all duration-200 hover:scale-105 text-sm sm:text-base"
                           >
                               Get Started
                           </button>
@@ -253,10 +253,10 @@ export function Landing() {
           </header>
 
           {/* Hero Section */}
-          <section className="relative pt-32 pb-16 overflow-hidden">
+          <section className="relative pt-24 sm:pt-32 pb-12 sm:pb-16 overflow-hidden">
               <div
                   className="container mx-auto px-4 text-center relative z-10"
-                  style={{ paddingTop: "2rem" }}
+                  style={{ paddingTop: "1rem sm:2rem" }}
               >
                   <div
                       className={`transition-all duration-1000 ${
@@ -265,14 +265,14 @@ export function Landing() {
                               : "opacity-0 translate-y-8"
                       }`}
                   >
-                      <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary-500/20 to-purple-500/20 rounded-full border border-primary-500/30 mb-8">
-                          <Sparkles className="h-4 w-4 text-primary-600 dark:text-primary-400 mr-2" />
-                          <span className="text-sm text-primary-700 dark:text-primary-300 font-medium">
+                      <div className="inline-flex items-center px-3 sm:px-4 py-2 bg-gradient-to-r from-primary-500/20 to-purple-500/20 rounded-full border border-primary-500/30 mb-6 sm:mb-8 mx-4">
+                          <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary-600 dark:text-primary-400 mr-2" />
+                          <span className="text-xs sm:text-sm text-primary-700 dark:text-primary-300 font-medium">
                               New: AI-powered captions now available
                           </span>
                       </div>
 
-                      <h1 className="text-9xl md:text-[5rem] font-bold mb-12 leading-tight">
+                      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 md:mb-12 leading-tight">
                           <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
                               Record, Edit, Share
                           </span>
@@ -282,23 +282,23 @@ export function Landing() {
                           </span>
                       </h1>
 
-                      <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-16 max-w-3xl mx-auto leading-relaxed">
+                      <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 md:mb-16 max-w-3xl mx-auto leading-relaxed px-4">
                           Create stunning screen recordings with our
                           comprehensive suite of tools. Built-in editing, AI
                           captions, and sophisticated sharing controls — all in
                           one platform.
                       </p>
 
-                      <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-8 px-4">
                           <button
                               onClick={() => setShowSignUp(true)}
-                              className="group bg-gradient-to-r from-primary-500 to-purple-500 text-white px-12 py-6 rounded-full hover:shadow-xl hover:shadow-primary-500/25 font-medium text-2xl transition-all duration-300 hover:scale-105 flex items-center"
+                              className="group bg-gradient-to-r from-primary-500 to-purple-500 text-white px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-6 rounded-full hover:shadow-xl hover:shadow-primary-500/25 font-medium text-base sm:text-lg md:text-xl lg:text-2xl transition-all duration-300 hover:scale-105 flex items-center w-full sm:w-auto justify-center"
                           >
                               Start Recording Free
-                              <ArrowRight className="ml-3 h-7 w-7 group-hover:translate-x-1 transition-transform" />
+                              <ArrowRight className="ml-2 md:ml-3 h-5 w-5 md:h-7 md:w-7 group-hover:translate-x-1 transition-transform" />
                           </button>
-                          <button className="group border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-12 py-6 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 font-medium text-2xl transition-all duration-300 hover:scale-105 flex items-center">
-                              <PlayCircle className="mr-3 h-7 w-7 group-hover:scale-110 transition-transform" />
+                          <button className="group border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-6 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 font-medium text-base sm:text-lg md:text-xl lg:text-2xl transition-all duration-300 hover:scale-105 flex items-center w-full sm:w-auto justify-center">
+                              <PlayCircle className="mr-2 md:mr-3 h-5 w-5 md:h-7 md:w-7 group-hover:scale-110 transition-transform" />
                               Watch Demo
                           </button>
                       </div>
@@ -359,7 +359,7 @@ export function Landing() {
 
               <div className="container mx-auto px-4">
                   <div className="text-center mb-20">
-                      <h2 className="text-5xl font-bold mb-6">
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                           <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                               Everything you need for
                           </span>
@@ -368,7 +368,7 @@ export function Landing() {
                               professional recordings
                           </span>
                       </h2>
-                      <p className="text-xl text-gray-600 dark:text-gray-400 mx-auto">
+                      <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mx-auto px-4">
                           From capture to sharing, ScreenForge provides all the
                           tools you need to create and distribute professional
                           screen recordings.
@@ -455,7 +455,7 @@ export function Landing() {
           <section className="py-24 relative z-10">
               <div className="container mx-auto px-4">
                   <div className="text-center mb-20">
-                      <h2 className="text-5xl font-bold mb-6">
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                           <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                               Three ways to capture
                           </span>
@@ -464,7 +464,7 @@ export function Landing() {
                               your perfect shot
                           </span>
                       </h2>
-                      <p className="text-xl text-gray-600 dark:text-gray-400">
+                      <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 px-4">
                           Choose the perfect recording scope for your needs
                       </p>
                   </div>
@@ -532,7 +532,7 @@ export function Landing() {
 
               <div className="container mx-auto px-4">
                   <div className="text-center mb-20">
-                      <h2 className="text-5xl font-bold mb-6">
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                           <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                               Loved by creators
                           </span>
@@ -633,8 +633,8 @@ export function Landing() {
           {/* CTA Section */}
           <section className="py-32 relative z-10">
               <div className="container mx-auto px-4 text-center relative">
-                  <div className="bg-gradient-to-br from-primary-500/10 to-purple-500/10 backdrop-blur-sm border border-primary-500/20 rounded-3xl p-16 relative">
-                      <h2 className="text-5xl font-bold mb-6">
+                  <div className="bg-gradient-to-br from-primary-500/10 to-purple-500/10 backdrop-blur-sm border border-primary-500/20 rounded-3xl p-8 sm:p-12 md:p-16 relative">
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                           <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                               Ready to create
                           </span>
@@ -643,17 +643,17 @@ export function Landing() {
                               professional recordings?
                           </span>
                       </h2>
-                      <p className="text-xl text-gray-600 dark:text-gray-300 mb-10 mx-auto">
+                      <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8 sm:mb-10 mx-auto px-4">
                           Join thousands of creators, designers, and developers
                           who trust ScreenForge for their screen recording
                           needs.
                       </p>
                       <button
                           onClick={() => setShowSignUp(true)}
-                          className="group bg-gradient-to-r from-primary-500 to-purple-500 text-white px-12 py-4 rounded-full hover:shadow-xl hover:shadow-primary-500/25 font-medium text-xl transition-all duration-300 hover:scale-105 flex items-center mx-auto"
+                          className="group bg-gradient-to-r from-primary-500 to-purple-500 text-white px-8 sm:px-12 py-3 sm:py-4 rounded-full hover:shadow-xl hover:shadow-primary-500/25 font-medium text-lg sm:text-xl transition-all duration-300 hover:scale-105 flex items-center mx-auto"
                       >
                           Get Started Free
-                          <Sparkles className="ml-3 h-6 w-6 group-hover:rotate-12 transition-transform" />
+                          <Sparkles className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-12 transition-transform" />
                       </button>
                   </div>
               </div>
