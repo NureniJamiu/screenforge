@@ -1,23 +1,17 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "src/index.ts",
-      "use": "@vercel/node"
+    "version": 2,
+    "functions": {
+        "src/index.ts": {
+            "includeFiles": "prisma/**"
+        }
+    },
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/src/index.ts"
+        }
+    ],
+    "env": {
+        "PRISMA_CLI_BINARY_TARGETS": "native,rhel-openssl-1.0.x"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "src/index.ts"
-    }
-  ],
-  "functions": {
-    "src/index.ts": {
-      "includeFiles": "prisma/**"
-    }
-  },
-  "env": {
-    "PRISMA_CLI_BINARY_TARGETS": "native,rhel-openssl-1.0.x"
-  }
 }
