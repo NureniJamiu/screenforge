@@ -6,24 +6,28 @@ const getApiBase = (): string => {
     if (import.meta.env.VITE_API_URL) {
         return import.meta.env.VITE_API_URL;
     }
-
+    
     // For development, use localhost
     if (import.meta.env.DEV) {
         return 'http://localhost:3001/api';
     }
-
-    // For production, construct URL based on current domain
-    // This assumes the backend is deployed at the same domain with different subdomain
+    
+    // For production, check if we're on the main domain
     const currentHost = window.location.hostname;
     if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
         return 'http://localhost:3001/api';
     }
-
-    // Fallback to relative API path - this requires the backend to be served from the same domain
+    
+    // In production, try to determine the correct backend URL
+    if (currentHost === 'screenforge.vercel.app') {
+        // The backend should be deployed to the same Vercel project
+        // but for now, let's use a relative path which should work if both are deployed together
+        return '/api';
+    }
+    
+    // Fallback to relative API path
     return '/api';
-};
-
-const API_BASE = getApiBase();
+};const API_BASE = getApiBase();
 
 export class VideoService {
     private static async fetch(
