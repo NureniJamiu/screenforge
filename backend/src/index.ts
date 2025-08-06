@@ -39,10 +39,29 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// Manual CORS headers (as backup/primary CORS solution)
+app.use((req, res, next) => {
+  // Set CORS headers manually
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
+
+// CORS configuration (keeping as secondary layer)
 const getAllowedOrigins = (): (string | RegExp)[] => {
     const origins: (string | RegExp)[] = [
         "http://localhost:5173", // Development
+        "https://screenforge.vercel.app", // Main production domain
+        "https://screenforge-git-main-nurenijamiu.vercel.app", // Git branch deployment
     ];
 
     // Add environment-specific origin if provided
@@ -50,12 +69,12 @@ const getAllowedOrigins = (): (string | RegExp)[] => {
         origins.push(process.env.FRONTEND_URL);
     }
 
-    // In production, allow Vercel preview deployments and the main domain
+    // In production, allow Vercel preview deployments
     if (process.env.NODE_ENV === "production") {
-        origins.push(/^https:\/\/.*\.vercel\.app$/); // Allow all Vercel preview deployments
-        origins.push("https://screenforge.vercel.app"); // Main production domain
+        origins.push(/^https:\/\/screenforge.*\.vercel\.app$/); // Allow all Vercel deployments
     }
 
+    console.log('Allowed CORS origins:', origins);
     return origins;
 };
 
