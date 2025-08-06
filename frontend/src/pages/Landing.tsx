@@ -272,7 +272,7 @@ export function Landing() {
                           </span>
                       </div>
 
-                      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-8 md:mb-12 leading-tight">
+                      <h1 className="text-5xl sm:text-6xl md:text-7xl xl:text-8xl font-bold mb-8 md:mb-12 leading-tight">
                           <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
                               Record, Edit, Share
                           </span>
