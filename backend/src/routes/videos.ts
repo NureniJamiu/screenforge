@@ -366,7 +366,11 @@ router.post(
     }
 );
 
-// Chunked upload support
+// Chunked upload support - DISABLED for serverless environments
+// These operations require file system access which is not available in Vercel
+// For production, consider using a different approach like direct streaming to Cloudinary
+
+/*
 const chunkStorage = multer.diskStorage({
     destination: (req, file, cb) => {
         const tempDir = path.join(__dirname, "../../uploads/temp");
@@ -596,5 +600,11 @@ router.delete('/upload/cleanup', requireAuth(), async (req: AuthenticatedRequest
     res.status(500).json({ error: 'Failed to cleanup upload' });
   }
 });
+*/
+
+// Note: Chunked upload functionality has been disabled for serverless deployment
+// as it requires file system operations that are not available in Vercel.
+// For production use, consider implementing streaming uploads directly to Cloudinary
+// or using a different approach that doesn't require local file storage.
 
 export default router;

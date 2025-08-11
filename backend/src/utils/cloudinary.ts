@@ -46,19 +46,22 @@ export const uploadVideoToCloudinary = async (
     };
 
     let result;
-    
+
     if (Buffer.isBuffer(filePathOrBuffer)) {
-      // Handle buffer upload (for serverless environments)
-      // Convert buffer to base64 string for Cloudinary
-      const base64Data = filePathOrBuffer.toString('base64');
-      const dataURI = `data:video/mp4;base64,${base64Data}`;
-      
-      result = await cloudinary.uploader.upload(dataURI, defaultOptions);
+        // Handle buffer upload (for serverless environments)
+        // Convert buffer to base64 string for Cloudinary
+        const base64Data = filePathOrBuffer.toString("base64");
+        const dataURI = `data:video/mp4;base64,${base64Data}`;
+
+        result = await cloudinary.uploader.upload(dataURI, defaultOptions);
     } else {
-      // Handle file path upload (for local development)
-      result = await cloudinary.uploader.upload(filePathOrBuffer, defaultOptions);
+        // Handle file path upload (for local development)
+        result = await cloudinary.uploader.upload(
+            filePathOrBuffer,
+            defaultOptions
+        );
     }
-    
+
     return result as CloudinaryUploadResult;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
