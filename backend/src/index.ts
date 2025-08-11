@@ -19,8 +19,31 @@ import { startCleanupJob } from "./utils/videoProcessor";
 // Load environment variables
 dotenv.config();
 
-// Initialize Prisma
-export const prisma = new PrismaClient();
+// Initialize Prisma with lazy loading for serverless environments
+let prisma: PrismaClient;
+
+const getPrismaClient = () => {
+    if (!prisma) {
+        try {
+            prisma = new PrismaClient({
+                log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+            });
+
+            // Test the connection
+            prisma.$connect()
+                .then(() => console.log('✅ Prisma connected successfully'))
+                .catch((error) => console.error('❌ Prisma connection failed:', error));
+
+        } catch (error) {
+            console.error('❌ Failed to initialize Prisma client:', error);
+            throw error;
+        }
+    }
+    return prisma;
+};
+
+// Export for use in other modules
+export const getPrisma = getPrismaClient;
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -132,8 +155,10 @@ app.options("*", (req, res) => {
     }
 });
 
-// Serve static files (uploaded videos)
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Serve static files (uploaded videos) - only in non-serverless environments
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+    app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+}
 
 // API routes
 app.use("/api/videos", videoRoutes);
@@ -145,6 +170,63 @@ app.get("/api/health", (req, res) => {
         status: "OK",
         message: "Screenforge API is running",
         timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        vercel: !!process.env.VERCEL,
+    });
+});
+
+// Simple health check that doesn't require database
+app.get("/api/health/simple", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        message: "Basic health check passed",
+        timestamp: new Date().toISOString(),
+    });
+});
+
+// Detailed health check with database connectivity test
+app.get("/api/health/detailed", async (req, res) => {
+    try {
+        const prisma = getPrismaClient();
+        await prisma.$queryRaw`SELECT 1`;
+
+        res.status(200).json({
+            status: "OK",
+            message: "Detailed health check passed",
+            timestamp: new Date().toISOString(),
+            database: "Connected",
+            environment: process.env.NODE_ENV || 'development',
+            vercel: !!process.env.VERCEL,
+        });
+    } catch (error) {
+        console.error('Health check failed:', error);
+        res.status(500).json({
+            status: "ERROR",
+            message: "Health check failed",
+            timestamp: new Date().toISOString(),
+            database: "Disconnected",
+            error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Database connection failed',
+        });
+    }
+});
+
+// Environment variable check (for debugging)
+app.get("/api/debug/env", (req, res) => {
+    const envVars = {
+        NODE_ENV: process.env.NODE_ENV,
+        VERCEL: process.env.VERCEL,
+        PORT: process.env.PORT,
+        DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'NOT_SET',
+        CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'NOT_SET',
+        CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ? 'SET' : 'NOT_SET',
+        CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'NOT_SET',
+        FRONTEND_URL: process.env.FRONTEND_URL,
+    };
+
+    res.status(200).json({
+        message: "Environment variables check",
+        timestamp: new Date().toISOString(),
+        environment: envVars,
     });
 });
 
@@ -199,15 +281,20 @@ if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
             console.log("☁️  Cloudinary configured for video storage");
         }
 
-        // Start background cleanup job
-        startCleanupJob();
-        console.log("🧹 Background cleanup job started");
+        // Start background cleanup job only in non-serverless environments
+        try {
+            startCleanupJob();
+            console.log("🧹 Background cleanup job started");
+        } catch (error) {
+            console.warn("⚠️  Could not start cleanup job:", error);
+        }
     });
 
     // Graceful shutdown for local development
     process.on("SIGINT", async () => {
         console.log("Shutting down gracefully...");
-        await prisma.$disconnect();
+        const client = getPrismaClient();
+        await client.$disconnect();
         process.exit(0);
     });
 }

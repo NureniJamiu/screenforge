@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
-import { prisma } from '../index';
+import { getPrisma } from '../index';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get('/me', requireAuth(), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId!;
 
-    let user = await prisma.user.findUnique({
+    let user = await getPrisma().user.findUnique({
       where: { clerkId: userId },
       include: {
         _count: {
@@ -22,7 +22,7 @@ router.get('/me', requireAuth(), async (req: AuthenticatedRequest, res) => {
 
     if (!user) {
       // Create user if doesn't exist
-      user = await prisma.user.create({
+      user = await getPrisma().user.create({
         data: {
           clerkId: userId,
           email: req.userEmail || '',
@@ -52,7 +52,7 @@ router.put('/me', requireAuth(), async (req: AuthenticatedRequest, res) => {
     const userId = req.userId!;
     const { firstName, lastName } = req.body;
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrisma().user.findUnique({
       where: { clerkId: userId }
     });
 
@@ -60,7 +60,7 @@ router.put('/me', requireAuth(), async (req: AuthenticatedRequest, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await getPrisma().user.update({
       where: { clerkId: userId },
       data: {
         firstName,
@@ -80,7 +80,7 @@ router.get('/stats', requireAuth(), async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.userId!;
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrisma().user.findUnique({
       where: { clerkId: userId }
     });
 
@@ -88,7 +88,7 @@ router.get('/stats', requireAuth(), async (req: AuthenticatedRequest, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const stats = await prisma.video.aggregate({
+    const stats = await getPrisma().video.aggregate({
       where: { userId: user.id },
       _count: {
         id: true

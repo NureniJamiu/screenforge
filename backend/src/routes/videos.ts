@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
-import { prisma } from '../index';
+import { getPrisma } from '../index';
 import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -58,12 +58,12 @@ router.get("/", requireAuth(), async (req: AuthenticatedRequest, res) => {
         const userId = req.userId!;
 
         // Get or create user
-        let user = await prisma.user.findUnique({
+        let user = await getPrisma().user.findUnique({
             where: { clerkId: userId },
         });
 
         if (!user) {
-            user = await prisma.user.create({
+            user = await getPrisma().user.create({
                 data: {
                     clerkId: userId,
                     email: req.userEmail || "",
@@ -73,7 +73,7 @@ router.get("/", requireAuth(), async (req: AuthenticatedRequest, res) => {
             });
         }
 
-        const videos = await prisma.video.findMany({
+        const videos = await getPrisma().video.findMany({
             where: { userId: user.id },
             orderBy: { createdAt: "desc" },
             include: {
@@ -116,12 +116,12 @@ router.post(
             } = req.body;
 
             // Get or create user
-            let user = await prisma.user.findUnique({
+            let user = await getPrisma().user.findUnique({
                 where: { clerkId: userId },
             });
 
             if (!user) {
-                user = await prisma.user.create({
+                user = await getPrisma().user.create({
                     data: {
                         clerkId: userId,
                         email: req.userEmail || "",
@@ -166,7 +166,7 @@ router.post(
             }
 
             // Create video record with Cloudinary data
-            const video = await prisma.video.create({
+            const video = await getPrisma().video.create({
                 data: {
                     title:
                         title || `Recording ${new Date().toLocaleDateString()}`,
@@ -202,7 +202,7 @@ router.get("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
         const userId = req.userId!;
         const { id } = req.params;
 
-        const user = await prisma.user.findUnique({
+        const user = await getPrisma().user.findUnique({
             where: { clerkId: userId },
         });
 
@@ -210,7 +210,7 @@ router.get("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const video = await prisma.video.findFirst({
+        const video = await getPrisma().video.findFirst({
             where: {
                 id,
                 userId: user.id,
@@ -243,7 +243,7 @@ router.put("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
         const { id } = req.params;
         const { title, description, isDownloadable, isPublic } = req.body;
 
-        const user = await prisma.user.findUnique({
+        const user = await getPrisma().user.findUnique({
             where: { clerkId: userId },
         });
 
@@ -251,7 +251,7 @@ router.put("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const video = await prisma.video.findFirst({
+        const video = await getPrisma().video.findFirst({
             where: {
                 id,
                 userId: user.id,
@@ -262,7 +262,7 @@ router.put("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
             return res.status(404).json({ error: "Video not found" });
         }
 
-        const updatedVideo = await prisma.video.update({
+        const updatedVideo = await getPrisma().video.update({
             where: { id },
             data: {
                 title,
@@ -285,7 +285,7 @@ router.delete("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
         const userId = req.userId!;
         const { id } = req.params;
 
-        const user = await prisma.user.findUnique({
+        const user = await getPrisma().user.findUnique({
             where: { clerkId: userId },
         });
 
@@ -293,7 +293,7 @@ router.delete("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const video = await prisma.video.findFirst({
+        const video = await getPrisma().video.findFirst({
             where: {
                 id,
                 userId: user.id,
@@ -331,7 +331,7 @@ router.delete("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
         }
 
         // Delete from database (cascade will handle relations)
-        await prisma.video.delete({
+        await getPrisma().video.delete({
             where: { id },
         });
 
@@ -351,7 +351,7 @@ router.post(
             const userId = req.userId!;
             const { id } = req.params;
 
-            const user = await prisma.user.findUnique({
+            const user = await getPrisma().user.findUnique({
                 where: { clerkId: userId },
             });
 
@@ -359,7 +359,7 @@ router.post(
                 return res.status(404).json({ error: "User not found" });
             }
 
-            const video = await prisma.video.findFirst({
+            const video = await getPrisma().video.findFirst({
                 where: {
                     id,
                     userId: user.id,
@@ -375,7 +375,7 @@ router.post(
             if (!shareToken) {
                 shareToken = uuidv4();
 
-                const updatedVideo = await prisma.video.update({
+                const updatedVideo = await getPrisma().video.update({
                     where: { id },
                     data: { shareToken },
                 });
@@ -519,12 +519,12 @@ router.post(
             const stats = fs.statSync(tempFinalPath);
 
             // Get or create user
-            let user = await prisma.user.findUnique({
+            let user = await getPrisma().user.findUnique({
                 where: { clerkId: userId },
             });
 
             if (!user) {
-                user = await prisma.user.create({
+                user = await getPrisma().user.create({
                     data: {
                         clerkId: userId,
                         email: req.userEmail || "",
@@ -564,7 +564,7 @@ router.post(
             }
 
             // Create video record with Cloudinary data
-            const video = await prisma.video.create({
+            const video = await getPrisma().video.create({
                 data: {
                     title:
                         session.metadata.title ||

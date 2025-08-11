@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
-import { prisma } from '../index';
+import { getPrisma } from '../index';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get('/video/:shareToken', async (req, res) => {
   try {
     const { shareToken } = req.params;
 
-    const video = await prisma.video.findUnique({
+    const video = await getPrisma().video.findUnique({
       where: { shareToken },
       include: {
         user: {
@@ -26,7 +26,7 @@ router.get('/video/:shareToken', async (req, res) => {
     }
 
     // Increment view count
-    await prisma.video.update({
+    await getPrisma().video.update({
       where: { id: video.id },
       data: { viewCount: { increment: 1 } }
     });
@@ -47,7 +47,7 @@ router.post('/:videoId', requireAuth(), async (req: AuthenticatedRequest, res) =
     const { videoId } = req.params;
     const { shareType, platform, expiresAt } = req.body;
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrisma().user.findUnique({
       where: { clerkId: userId }
     });
 
@@ -55,7 +55,7 @@ router.post('/:videoId', requireAuth(), async (req: AuthenticatedRequest, res) =
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const video = await prisma.video.findFirst({
+    const video = await getPrisma().video.findFirst({
       where: {
         id: videoId,
         userId: user.id
@@ -66,7 +66,7 @@ router.post('/:videoId', requireAuth(), async (req: AuthenticatedRequest, res) =
       return res.status(404).json({ error: 'Video not found' });
     }
 
-    const share = await prisma.videoShare.create({
+    const share = await getPrisma().videoShare.create({
       data: {
         videoId,
         shareType,
@@ -88,7 +88,7 @@ router.get('/:videoId/shares', requireAuth(), async (req: AuthenticatedRequest, 
     const userId = req.userId!;
     const { videoId } = req.params;
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrisma().user.findUnique({
       where: { clerkId: userId }
     });
 
@@ -96,7 +96,7 @@ router.get('/:videoId/shares', requireAuth(), async (req: AuthenticatedRequest, 
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const video = await prisma.video.findFirst({
+    const video = await getPrisma().video.findFirst({
       where: {
         id: videoId,
         userId: user.id
@@ -107,7 +107,7 @@ router.get('/:videoId/shares', requireAuth(), async (req: AuthenticatedRequest, 
       return res.status(404).json({ error: 'Video not found' });
     }
 
-    const shares = await prisma.videoShare.findMany({
+    const shares = await getPrisma().videoShare.findMany({
       where: { videoId },
       orderBy: { sharedAt: 'desc' }
     });
@@ -124,7 +124,7 @@ router.post('/download/:shareToken', async (req, res) => {
   try {
     const { shareToken } = req.params;
 
-    const video = await prisma.video.findUnique({
+    const video = await getPrisma().video.findUnique({
       where: { shareToken }
     });
 
@@ -137,7 +137,7 @@ router.post('/download/:shareToken', async (req, res) => {
     }
 
     // Increment download count
-    await prisma.video.update({
+    await getPrisma().video.update({
       where: { id: video.id },
       data: { downloadCount: { increment: 1 } }
     });

@@ -7,7 +7,7 @@
         "dev": "nodemon src/index.ts",
         "build": "tsc",
         "start": "npm run build && node dist/index.js",
-        "vercel-build": "prisma generate",
+        "vercel-build": "npm run build && prisma generate",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",
         "prisma:migrate:prod": "prisma migrate deploy",
