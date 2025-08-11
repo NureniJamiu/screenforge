@@ -135,10 +135,6 @@ export class VideoProcessor {
 
             // Skip processing for Cloudinary videos (no local file)
             if (video.storageProvider === "CLOUDINARY" || !video.filename) {
-                console.log(
-                    "Skipping processing for Cloudinary video:",
-                    videoId
-                );
                 return;
             }
 
@@ -190,8 +186,6 @@ export class VideoProcessor {
                     data: updateData,
                 });
             }
-
-            console.log(`Video processing completed for ${videoId}`);
         } catch (error) {
             console.error("Error processing video:", error);
         }
@@ -274,7 +268,6 @@ export function startCleanupJob(): void {
 
         if (now - stats.mtime.getTime() > MAX_AGE) {
           fs.unlinkSync(filePath);
-          console.log('Cleaned up old temp file:', file);
         }
       });
     }

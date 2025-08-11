@@ -14,6 +14,12 @@
 
 </div>
 
+## 🖼️ Project Preview
+
+![ScreenForge Homepage](frontend/public/homepage.png)
+
+*ScreenForge - Professional screen recording and video editing platform*
+
 ## ✨ Features
 
 - 🎥 **Multiple Recording Modes**: Capture entire desktop, specific windows, or browser tabs

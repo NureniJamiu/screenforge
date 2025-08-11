@@ -29,12 +29,6 @@ const upload = multer({
         fileSize: 500 * 1024 * 1024, // 500MB limit
     },
     fileFilter: (req, file, cb) => {
-        console.log("File upload attempt:", {
-            originalname: file.originalname,
-            mimetype: file.mimetype,
-            fieldname: file.fieldname,
-        });
-
         // Accept video files and webm files specifically
         if (
             file.mimetype.startsWith("video/") ||

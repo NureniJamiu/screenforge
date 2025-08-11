@@ -8,23 +8,19 @@ import { getPrisma } from "../index";
  * Migrate existing local videos to Cloudinary
  * This script is optional and can be used to migrate existing videos
  */
-async function migrateVideosToCloudinary() {
-    console.log("🚀 Starting video migration to Cloudinary...");
-
+export async function migrateToCloudinary(): Promise<void> {
     try {
         const prisma = getPrisma();
-
+        
         // Get all videos that are stored locally
         const localVideos = await prisma.video.findMany({
             where: {
                 storageProvider: "LOCAL",
+                filename: { not: null },
             },
         });
 
-        console.log(`📹 Found ${localVideos.length} videos to migrate`);
-
         if (localVideos.length === 0) {
-            console.log("✅ No videos to migrate");
             return;
         }
 
@@ -32,65 +28,45 @@ async function migrateVideosToCloudinary() {
         let failCount = 0;
 
         for (const video of localVideos) {
-            console.log(`\n📤 Migrating video: ${video.title} (${video.id})`);
+            if (!video.filename) {
+                continue;
+            }
+
+            const localFilePath = path.join(
+                __dirname,
+                "../../uploads",
+                video.filename
+            );
+
+            if (!fs.existsSync(localFilePath)) {
+                continue;
+            }
 
             try {
-                if (!video.filename) {
-                    console.log("❌ Skipping video - no filename");
-                    failCount++;
-                    continue;
-                }
-
-                const localFilePath = path.join(
-                    __dirname,
-                    "../../uploads",
-                    video.filename
-                );
-
-                // Check if local file exists
-                if (!fs.existsSync(localFilePath)) {
-                    console.log("❌ Local file not found, skipping...");
-                    failCount++;
-                    continue;
-                }
-
-                // Generate unique public ID for Cloudinary
-                const publicId = `migration/${video.userId}/${video.id}`;
-
                 // Upload to Cloudinary
-                const cloudinaryResult = await uploadVideoToCloudinary(
-                    localFilePath,
-                    {
-                        public_id: publicId,
-                        folder: "screenforge/videos",
-                        resource_type: "video",
-                        quality: "auto",
-                    }
-                );
+                const result = await uploadVideoToCloudinary(localFilePath, {
+                    public_id: `screenforge/videos/${video.id}`,
+                    folder: "screenforge/videos",
+                    resource_type: "video",
+                });
 
-                // Update video record
+                // Update database record
                 await prisma.video.update({
                     where: { id: video.id },
                     data: {
-                        cloudinaryPublicId: cloudinaryResult.public_id,
-                        cloudinaryUrl: cloudinaryResult.secure_url,
-                        videoUrl: cloudinaryResult.secure_url,
                         storageProvider: "CLOUDINARY",
-                        // Update duration if Cloudinary provides it
-                        duration: cloudinaryResult.duration || video.duration,
+                        cloudinaryPublicId: result.public_id,
+                        cloudinaryUrl: result.secure_url,
+                        videoUrl: result.secure_url,
+                        filename: null, // Remove local filename
                     },
                 });
 
-                console.log("✅ Successfully migrated to Cloudinary");
-
-                // Optionally delete local file after successful migration
-                // Uncomment the lines below if you want to delete local files
-                // fs.unlinkSync(localFilePath);
-                // console.log('🗑️  Local file deleted');
+                // Delete local file
+                fs.unlinkSync(localFilePath);
 
                 successCount++;
             } catch (error) {
-                console.error("❌ Error migrating video:", error);
                 failCount++;
             }
         }
@@ -98,58 +74,47 @@ async function migrateVideosToCloudinary() {
         console.log(`\n📊 Migration complete:`);
         console.log(`   ✅ Successfully migrated: ${successCount}`);
         console.log(`   ❌ Failed: ${failCount}`);
-
-        if (successCount > 0) {
-            console.log(
-                "\n💡 Note: Local files were kept for safety. You can manually delete them after verifying the migration."
-            );
-        }
     } catch (error) {
-        console.error("❌ Migration failed:", error);
-    } finally {
-        // The original code had prisma.$disconnect(), but getPrisma doesn't return a client.
-        // Assuming the intent was to remove this line as it's no longer needed.
+        throw new Error(`Migration failed: ${error}`);
     }
 }
 
-/**
- * Rollback migration - move videos back to local storage
- * This function can be used to rollback the migration if needed
- */
-async function rollbackMigration() {
-    console.log("🔄 Starting rollback migration...");
-
+// Rollback migration (not fully implemented)
+export async function rollbackMigration(): Promise<void> {
     try {
-        const cloudinaryVideos = await getPrisma().video.findMany({
+        const prisma = getPrisma();
+        
+        // Get all videos that are stored in Cloudinary
+        const cloudinaryVideos = await prisma.video.findMany({
             where: {
                 storageProvider: "CLOUDINARY",
+                cloudinaryPublicId: { not: null },
             },
         });
 
-        console.log(`📹 Found ${cloudinaryVideos.length} videos to rollback`);
+        if (cloudinaryVideos.length === 0) {
+            return;
+        }
 
-        // This is a placeholder - you would need to implement downloading from Cloudinary
-        // and saving to local storage if you need this functionality
-        console.log(
-            "ℹ️  Rollback not implemented - please implement if needed"
-        );
+        // Note: This is a placeholder for rollback functionality
+        // In a real implementation, you would download from Cloudinary and restore local files
+        throw new Error("Rollback functionality not implemented");
     } catch (error) {
-        console.error("❌ Rollback failed:", error);
-    } finally {
-        // The original code had prisma.$disconnect(), but getPrisma doesn't return a client.
-        // Assuming the intent was to remove this line as it's no longer needed.
+        throw new Error(`Rollback failed: ${error}`);
     }
 }
 
-// Check command line arguments
-const command = process.argv[2];
-
-if (command === 'migrate') {
-  migrateVideosToCloudinary();
-} else if (command === 'rollback') {
-  rollbackMigration();
-} else {
-  console.log('Usage:');
-  console.log('  npm run migrate -- migrate    # Migrate local videos to Cloudinary');
-  console.log('  npm run migrate -- rollback   # Rollback migration (not implemented)');
+// CLI usage
+if (require.main === module) {
+    const command = process.argv[2];
+    
+    if (command === 'migrate') {
+        migrateToCloudinary().catch(console.error);
+    } else if (command === 'rollback') {
+        rollbackMigration().catch(console.error);
+    } else {
+        console.log('Usage:');
+        console.log('  npm run migrate -- migrate    # Migrate local videos to Cloudinary');
+        console.log('  npm run migrate -- rollback   # Rollback migration (not implemented)');
+    }
 }

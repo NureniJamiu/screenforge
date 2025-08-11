@@ -64,13 +64,6 @@ export class VideoUploadService {
         type: videoMimeType
       });
 
-      console.log('Creating file for upload:', {
-        originalBlobType: blob.type,
-        finalMimeType: videoMimeType,
-        fileName: file.name,
-        fileSize: file.size
-      });
-
       formData.append('video', file);
       formData.append('title', metadata.title);
       formData.append('description', metadata.description || '');

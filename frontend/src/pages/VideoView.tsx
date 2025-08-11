@@ -58,14 +58,21 @@ export function VideoView() {
         fetchVideo();
     }, [shareToken]);
 
-    const handleDownload = () => {
-        if (video?.isDownloadable) {
-            console.log("Downloading video:", video.title);
-            const link = document.createElement("a");
-            link.href = VideoService.getVideoUrl(video.videoUrl);
-            link.download = `${video.title}.mp4`;
-            link.click();
-        }
+    const handleDownload = async () => {
+      try {
+        const response = await fetch(video.videoUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = video.originalName || `video-${video.id}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error("Error downloading video:", error);
+      }
     };
 
     const shareUrl = window.location.href;

@@ -198,14 +198,6 @@ export function VideoEditor() {
             );
 
             // Here you would also handle trimming and other editing operations
-            console.log("Saving video with settings:", {
-                videoId,
-                title: videoTitle,
-                trimStart,
-                trimEnd,
-                downloadEnabled,
-                hasCaptions,
-            });
 
             // Navigate back to videos list or dashboard
             navigate("/dashboard/videos");

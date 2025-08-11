@@ -120,11 +120,6 @@ export function useRecording(options: UseRecordingOptions = {}) {
             if (!token) {
               throw new Error('Authentication required for upload');
             }
-            console.log('Starting video upload with blob:', {
-              size: result.blob.size,
-              type: result.blob.type,
-              duration: result.duration
-            });
             const metadata = {
               title: `Recording ${new Date().toLocaleDateString()}`,
               description: `Screen recording captured on ${new Date().toLocaleString()}`,

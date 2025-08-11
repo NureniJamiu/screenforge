@@ -31,7 +31,9 @@ const getPrismaClient = () => {
 
             // Test the connection
             prisma.$connect()
-                .then(() => console.log('✅ Prisma connected successfully'))
+                .then(() => {
+                    // Prisma connected successfully
+                })
                 .catch((error) => console.error('❌ Prisma connection failed:', error));
 
         } catch (error) {
@@ -63,66 +65,17 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration (keeping as secondary layer)
-const getAllowedOrigins = () => {
-    const origins = [];
-
-    // Add environment-specific origin if provided
-    if (process.env.FRONTEND_URL) {
-        origins.push(process.env.FRONTEND_URL);
-    }
-
-    // Add environment-specific frontend URL
-    if (process.env.FRONTEND_URL) {
-        origins.push(process.env.FRONTEND_URL);
-    }
-
-    // In production, allow Vercel preview deployments
-    if (process.env.NODE_ENV === "production") {
-        origins.push("https://screenforge.vercel.app");
-        origins.push("https://screenforge.*.vercel.app");
-        origins.push("https://screenforge.nurenijamiu.tech");
-    } else {
-        // Development origins
-        origins.push("http://localhost:5173");
-        origins.push("http://localhost:3000");
-        origins.push("http://127.0.0.1:5173");
-    }
-
-    console.log("Allowed CORS origins:", origins);
-    return origins;
-};
+// Configure CORS
+const origins = [
+    process.env.FRONTEND_URL || "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:5173",
+];
 
 app.use(
     cors({
-        origin: (origin, callback) => {
-            const allowedOrigins = getAllowedOrigins();
-
-            // Allow requests with no origin (mobile apps, Postman, etc.)
-            if (!origin) return callback(null, true);
-
-            if (allowedOrigins.includes(origin)) {
-                callback(null, true);
-            } else {
-                console.warn(
-                    `CORS blocked origin: ${origin}. Allowed origins: ${allowedOrigins.join(
-                        ", "
-                    )}`
-                );
-                callback(new Error("Not allowed by CORS"));
-            }
-        },
+        origin: origins,
         credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: [
-            "Content-Type",
-            "Authorization",
-            "X-Requested-With",
-            "Accept",
-            "Origin",
-        ],
-        exposedHeaders: ["Content-Range", "X-Content-Range"],
-        maxAge: 86400,
     })
 );
 
@@ -135,10 +88,9 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Handle preflight requests explicitly
 app.options("*", (req, res) => {
-    const allowedOrigins = getAllowedOrigins();
     const origin = req.headers.origin;
 
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || origins.includes(origin)) {
         res.header("Access-Control-Allow-Origin", origin || "*");
         res.header(
             "Access-Control-Allow-Methods",
@@ -243,8 +195,6 @@ app.use(
         res: express.Response,
         next: express.NextFunction
     ) => {
-        console.error("Error:", err);
-
         if (err.type === "entity.too.large") {
             return res.status(413).json({ error: "File too large" });
         }
@@ -261,41 +211,33 @@ app.use(
 
 // Only start server in development or when not in Vercel environment
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
-    app.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT}`);
-        console.log(`📊 Health check: http://localhost:${PORT}/health`);
-
-        // Check Cloudinary configuration
+    const server = app.listen(PORT, () => {
+        // Check if Cloudinary is configured
         if (
-            !process.env.CLOUDINARY_CLOUD_NAME ||
-            !process.env.CLOUDINARY_API_KEY ||
-            !process.env.CLOUDINARY_API_SECRET
+            process.env.CLOUDINARY_CLOUD_NAME &&
+            process.env.CLOUDINARY_API_KEY &&
+            process.env.CLOUDINARY_API_SECRET
         ) {
-            console.warn(
-                "⚠️  Cloudinary not configured - video uploads may fail"
-            );
-            console.log(
-                "   Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET"
-            );
+            // Cloudinary is configured
         } else {
-            console.log("☁️  Cloudinary configured for video storage");
+            console.warn(
+                "⚠️  Cloudinary not fully configured - video uploads may fail"
+            );
         }
 
         // Start background cleanup job only in non-serverless environments
         try {
             startCleanupJob();
-            console.log("🧹 Background cleanup job started");
         } catch (error) {
             console.warn("⚠️  Could not start cleanup job:", error);
         }
     });
 
-    // Graceful shutdown for local development
-    process.on("SIGINT", async () => {
-        console.log("Shutting down gracefully...");
-        const client = getPrismaClient();
-        await client.$disconnect();
-        process.exit(0);
+    // Graceful shutdown
+    process.on("SIGTERM", () => {
+        server.close(() => {
+            process.exit(0);
+        });
     });
 }
 
