@@ -77,10 +77,12 @@ const getAllowedOrigins = (): (string | RegExp)[] => {
 
     // In production, allow Vercel preview deployments
     if (process.env.NODE_ENV === "production") {
-        origins.push(/^https:\/\/screenforge.*\.vercel\.app$/); // Allow all Vercel deployments
+        origins.push("https://screenforge.vercel.app");
+        origins.push("https://screenforge.*.vercel.app");
+        origins.push("https://screenforge.nurenijamiu.tech");
     }
 
-    console.log('Allowed CORS origins:', origins);
+    console.log("Allowed CORS origins:", origins);
     return origins;
 };
 
@@ -89,8 +91,14 @@ app.use(
         origin: getAllowedOrigins(),
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization", "Accept"],
-        exposedHeaders: ["Content-Disposition"],
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "Accept",
+            "X-Requested-With",
+            "Origin",
+        ],
+        exposedHeaders: ["Content-Range", "X-Content-Disposition"],
     })
 );
 
