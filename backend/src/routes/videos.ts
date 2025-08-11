@@ -2,9 +2,7 @@ import express from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { getPrisma } from '../index';
 import multer from 'multer';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
 import {
     uploadVideoToCloudinary,
     deleteVideoFromCloudinary,
@@ -137,27 +135,13 @@ router.post(
             // Upload to Cloudinary
             let cloudinaryResult;
             try {
-                // Create temporary file for Cloudinary upload
-                const tempDir = path.join(__dirname, "../../temp");
-                if (!fs.existsSync(tempDir)) {
-                    fs.mkdirSync(tempDir, { recursive: true });
-                }
-
-                const tempFilePath = path.join(
-                    tempDir,
-                    `${uuidv4()}-${req.file.originalname}`
-                );
-                fs.writeFileSync(tempFilePath, req.file.buffer);
-
-                cloudinaryResult = await uploadVideoToCloudinary(tempFilePath, {
+                // Upload directly from buffer - no file system operations needed
+                cloudinaryResult = await uploadVideoToCloudinary(req.file.buffer, {
                     public_id: publicId,
                     folder: "screenforge/videos",
                     resource_type: "video",
                     quality: "auto",
                 });
-
-                // Clean up temporary file
-                fs.unlinkSync(tempFilePath);
             } catch (cloudinaryError) {
                 console.error("Cloudinary upload failed:", cloudinaryError);
                 return res
@@ -317,16 +301,6 @@ router.delete("/:id", requireAuth(), async (req: AuthenticatedRequest, res) => {
                     cloudinaryError
                 );
                 // Continue with database deletion even if cloud deletion fails
-            }
-        } else if (video.storageProvider === "LOCAL" && video.filename) {
-            // Delete local file if it exists
-            const filePath = path.join(
-                __dirname,
-                "../../uploads",
-                video.filename
-            );
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
             }
         }
 

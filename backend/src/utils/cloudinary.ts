@@ -31,9 +31,10 @@ export interface CloudinaryUploadOptions {
 
 /**
  * Upload a video file to Cloudinary
+ * Supports both file paths and buffers
  */
 export const uploadVideoToCloudinary = async (
-  filePath: string,
+  filePathOrBuffer: string | Buffer,
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> => {
   try {
@@ -44,7 +45,20 @@ export const uploadVideoToCloudinary = async (
       ...options,
     };
 
-    const result = await cloudinary.uploader.upload(filePath, defaultOptions);
+    let result;
+    
+    if (Buffer.isBuffer(filePathOrBuffer)) {
+      // Handle buffer upload (for serverless environments)
+      // Convert buffer to base64 string for Cloudinary
+      const base64Data = filePathOrBuffer.toString('base64');
+      const dataURI = `data:video/mp4;base64,${base64Data}`;
+      
+      result = await cloudinary.uploader.upload(dataURI, defaultOptions);
+    } else {
+      // Handle file path upload (for local development)
+      result = await cloudinary.uploader.upload(filePathOrBuffer, defaultOptions);
+    }
+    
     return result as CloudinaryUploadResult;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
