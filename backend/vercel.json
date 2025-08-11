@@ -1,11 +1,10 @@
 {
     "version": 2,
+    "buildCommand": "npm run vercel-build",
+    "outputDirectory": "dist",
     "functions": {
-        "api/index.ts": {
+        "dist/api/index.js": {
             "maxDuration": 30
         }
-    },
-    "env": {
-        "NODE_ENV": "production"
     }
 }
