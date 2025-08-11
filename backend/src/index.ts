@@ -88,17 +88,33 @@ const getAllowedOrigins = (): (string | RegExp)[] => {
 
 app.use(
     cors({
-        origin: getAllowedOrigins(),
+        origin: (origin, callback) => {
+            const allowedOrigins = getAllowedOrigins();
+
+            // Allow requests with no origin (mobile apps, Postman, etc.)
+            if (!origin) return callback(null, true);
+
+            if (allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                console.warn(
+                    `CORS blocked origin: ${origin}. Allowed origins: ${allowedOrigins.join(
+                        ", "
+                    )}`
+                );
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allowedHeaders: [
             "Content-Type",
             "Authorization",
-            "Accept",
             "X-Requested-With",
+            "Accept",
             "Origin",
         ],
-        exposedHeaders: ["Content-Range", "X-Content-Disposition"],
+        exposedHeaders: ["Content-Range", "X-Content-Range"],
     })
 );
 
