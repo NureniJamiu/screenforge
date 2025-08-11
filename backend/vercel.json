@@ -9,10 +9,12 @@
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "/api/index"
+            "dest": "/api/index.ts"
         }
     ],
     "env": {
+        "NODE_ENV": "production",
+        "FRONTEND_URL": "https://screenforge.nurenijamiu.tech",
         "PRISMA_CLI_BINARY_TARGETS": "native,rhel-openssl-1.0.x"
     }
 }
