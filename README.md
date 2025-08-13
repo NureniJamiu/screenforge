@@ -60,13 +60,10 @@ Before you begin, ensure you have the following installed:
    **Frontend (.env)**
    ```env
    VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-   VITE_API_URL=http://localhost:3001
-   ```
 
-   **Backend (.env)**
-   ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/screenforge"
-   CLERK_SECRET_KEY=your_clerk_secret_key
+   Here are some planned features and integrations for upcoming releases:
+
+
    CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
    CLOUDINARY_API_KEY=your_cloudinary_api_key
    CLOUDINARY_API_SECRET=your_cloudinary_api_secret
@@ -247,6 +244,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Vercel](https://vercel.com/) for hosting and deployment
 - [Prisma](https://prisma.io/) for database management
 
+## 🔮 Future Integrations
+
+Planned features for upcoming releases:
+
+- **Zoom on Cursor Point:** Viewers can zoom in on specific areas of the screen recording by hovering or clicking near the cursor.
+- **Comments & Reactions:** Users can leave comments or emoji reactions directly on shared videos for collaborative feedback.
+- **Advanced Analytics:** Track viewer engagement, watch time, and interaction statistics for each video.
+- **Third-Party Integrations:** Connect with platforms like Slack, Trello, Notion, and Google Drive for seamless sharing and workflow automation.
+- **Custom Branding:** Add custom watermarks, intro/outro screens, and branding options for organizations.
+- **Transcript Search:** Search within AI-generated captions and transcripts for quick navigation.
+- **Live Collaboration:** Multiple users can annotate or edit videos in real-time.
+
 ## 📞 Support
 
 If you have any questions or need help, please:
@@ -255,7 +264,3 @@ If you have any questions or need help, please:
 - Contact the maintainers
 
 ---
-
-<div align="center">
-  Made with ❤️ by the ScreenForge Team
-</div>
